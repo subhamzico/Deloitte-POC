@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Template to Create an Lambda IAM Role
+Resources:
+  MyTestRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: Lambda-Role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: Lambda-Execute-Policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - 'sqs:*'
+                  - 'dynamodb:*'
+                  - 'apigateway:*'
+                  - 'execute-api:*'
+                  - 'logs:*'
+                  - 'cloudwatch:*'
+                Resource: '*'
