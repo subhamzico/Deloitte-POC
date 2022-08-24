@@ -37,17 +37,25 @@ export class CdkPocStack extends cdk.Stack {
       cloudWatchRole: false
     })
 
-    //Creating Two SQS Queue for Success and Failure
+    //Creating Two SQS Queue for Success and Failure in RestAPI Lambda
     const successQueue = new sqs.Queue(this, 'Success-Lambda-SQS',{
       queueName: "On-Success-lambda-sqs-queue-"+config.Env
     })
-
     const failureQueue = new sqs.Queue(this, 'Failed-Lambda-SQS',{
       queueName: "On-Failure-lambda-sqs-queue-"+config.Env
     })
 
+    //Creating Two SQS Queue for the Second Lambda whose Trigger is also an SQS Queue
+    const successQueueSecondLambda = new sqs.Queue(this, 'Success-Second-Lambda-SQS',{
+      queueName: "On-Success-second-lambda-sqs-queue-"+config.Env
+    })
+    const failureQueueSecondLambda = new sqs.Queue(this, 'Failed-Second-Lambda-SQS',{
+      queueName: "On-Failure-second-lambda-sqs-queue-"+config.Env
+    })
+
+
     //DDB Table for Second Lambda
-    const ddbtable = new dynamodb.Table(this, 'Lambda-DDB-Table',{
+    const ddbtable1 = new dynamodb.Table(this, 'Lambda-DDB-Table',{
       tableName: 'Lambda-DDB-Table'+config.Env,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: {
@@ -61,7 +69,7 @@ export class CdkPocStack extends cdk.Stack {
     })
     
     //Creating a GSI for the DDB
-    ddbtable.addGlobalSecondaryIndex({
+    ddbtable1.addGlobalSecondaryIndex({
       indexName: 'lambda-gsi-ddb-'+config.Env,
       partitionKey: {
         name: 'employeeage',
@@ -99,6 +107,8 @@ export class CdkPocStack extends cdk.Stack {
       description: "Deloitte POC Second Lambda",
       timeout: cdk.Duration.seconds(20),
       memorySize: 160,
+      onSuccess: new SqsDestination(successQueueSecondLambda),
+      onFailure: new SqsDestination(failureQueueSecondLambda)
     })
 
     DeloitteFunction2.addEventSource(new SqsEventSource(successQueue,{
